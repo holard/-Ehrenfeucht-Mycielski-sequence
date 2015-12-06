@@ -1,3 +1,4 @@
+package submit;
 
 /**
  * Alphabet implementation with a given size. Uses strings "0", "1", etc.
@@ -17,6 +18,10 @@ public class ModAlphabet implements Alphabet {
 		int val = Integer.valueOf(s);
 		val = (val+1) % base;
 		return String.valueOf(val);
+	}
+	@Override
+	public int getSize() {
+		return base;
 	}
 
 }

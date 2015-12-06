@@ -1,22 +1,22 @@
+package submit;
 import java.util.HashMap;
-
-import submit.Alphabet;
 
 
 /**
- * EM-Sequence generator using Inverted Prefix Tries, as specified in 
- * 		Herman-Soltys '07
+ * EM-Sequence generator using Inverted Radix Tries, as specified in 
+ * Herman-Soltys '07. Has O(log(n)) time complexity per bit.
  */
-public class Generator {
+public class RadixNumGenerator {
 
 	String seed;
-	Node IPT;
+	RadixNumNode IPT;
 	String w;
 	int index;
 	String a;
 	Alphabet alph;
 	String e;
 	HashMap<String,Integer> counts;
+	public int size;
 	
 	/**
 	 * @param seed
@@ -24,10 +24,10 @@ public class Generator {
 	 * @param al
 	 * 		Alphabet object to generate the next bit in the sequence.
 	 */
-	public Generator(String seed, Alphabet al)
+	public RadixNumGenerator(String seed, Alphabet al)
 	{
 		this.seed = seed;
-		IPT = new Node();
+		IPT = new RadixNumNode(al.getSize());
 		w = "";
 		IPT.label = 0;
 		index = 1;
@@ -76,28 +76,34 @@ public class Generator {
 
 		w = a+w;
 		int i = 0;
-		Node curr = IPT;
-		Node prev = null;
+		RadixNumNode curr = IPT;
+		RadixNumNode prev = null;
+		int currindex = 0;
+		int previndex = 0;
 		int k = -1;
 
 		while (i < w.length())
 		{
-			String c = w.substring(i, i+1);
+			char c = w.charAt(i);
 			
 			if (curr != null) // Following existing branches
 			{
-				k = curr.label;
+				if (curr.label != index)
+					k = curr.label;
+
 				curr.label = index;
 				prev = curr;
-				curr = curr.find(c);
+				Pair<RadixNumNode,Integer> pair = curr.find(c, currindex);
+				previndex = currindex;
+				currindex = pair.second();
+				curr = pair.first();
 			} 
 			if (curr == null) // Adding a new branch.
 			{
-				Node next = new Node();
-				next.val = c;
-				next.label = index;
-				prev.children.put(c,next);
-				prev = next;
+				size += 1;
+				prev = prev.insert(w.substring(i), previndex,k);
+				prev.label = index;
+				break;
 			}
 			i += 1;
 		}
@@ -105,9 +111,9 @@ public class Generator {
 		String toret = "";
 		toret += a;
 		logHit(toret);
-		
+
 		e += a;
-		a = alph.next(e.substring(k+1, k+2));
+		a = alph.next("" + e.charAt(k+1));
 
 		index += 1;
 		return toret;
