@@ -4,7 +4,8 @@ import java.util.HashMap;
 
 /**
  * EM-Sequence generator using Inverted Radix Tries, as specified in 
- * Herman-Soltys '07. Has O(log(n)) time complexity per bit.
+ * Herman-Soltys '07. Has conjectured O(log(n)) time complexity per bit,
+ * if match length is indeed in O(log(n)).
  */
 public class RadixNumGenerator {
 
@@ -63,12 +64,14 @@ public class RadixNumGenerator {
 	}
 	
 	/**
-	 * Gets the next symbol.
+	 * Gets the next symbol. Follows the structure of the pseudocode in
+	 * Herman-Soltys '07 exactly.
 	 * @return
 	 * 		The next symbol.
 	 */
-	public String next()
+	public Bundle next()
 	{
+		Bundle ret = new Bundle();
 		if (index <= seed.length())
 		{
 			a = "" + seed.charAt(index-1);
@@ -80,8 +83,9 @@ public class RadixNumGenerator {
 		RadixNumNode prev = null;
 		int currindex = 0;
 		int previndex = 0;
-		int k = -1;
-
+		int matchPosition = -1;
+		int matchLength = -1;
+		// Follow the tree as much as possible, then add a new branch
 		while (i < w.length())
 		{
 			char c = w.charAt(i);
@@ -89,8 +93,8 @@ public class RadixNumGenerator {
 			if (curr != null) // Following existing branches
 			{
 				if (curr.label != index)
-					k = curr.label;
-
+					matchPosition = curr.label;
+				matchLength += 1;
 				curr.label = index;
 				prev = curr;
 				Pair<RadixNumNode,Integer> pair = curr.find(c, currindex);
@@ -101,7 +105,7 @@ public class RadixNumGenerator {
 			if (curr == null) // Adding a new branch.
 			{
 				size += 1;
-				prev = prev.insert(w.substring(i), previndex,k);
+				prev = prev.insert(w.substring(i), previndex,matchPosition);
 				prev.label = index;
 				break;
 			}
@@ -113,9 +117,12 @@ public class RadixNumGenerator {
 		logHit(toret);
 
 		e += a;
-		a = alph.next("" + e.charAt(k+1));
+		a = alph.next("" + e.charAt(matchPosition+1));
 
 		index += 1;
-		return toret;
+		ret.symbol = toret;
+		ret.length = matchLength;
+		ret.position = matchPosition;
+		return ret;
 	}
 }
