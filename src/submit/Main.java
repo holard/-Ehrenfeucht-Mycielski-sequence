@@ -11,7 +11,7 @@ public class Main {
 		
 		// EM sequence generator based on Inverted Radix Trees
 		RadixNumGenerator g = new RadixNumGenerator(seed, A);
-		for (int i = 0; i < 128; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			Bundle next = g.next();
 			System.out.println(next.symbol + ", match length = " + next.length + 
